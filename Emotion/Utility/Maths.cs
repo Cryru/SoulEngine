@@ -709,5 +709,53 @@ namespace Emotion.Utility
 
             return new Rectangle(minX, minY, width, height);
         }
+
+        /// <summary>
+        /// Combine two axis-angle rotations into one.
+        /// </summary>
+        /// <param name="angle1">The angle of the first rotation.</param>
+        /// <param name="axis1">The axis of the first rotation. Must be normalized.</param>
+        /// <param name="angle2">The angle of the second rotation.</param>
+        /// <param name="axis2">The axis of the second rotation. Must be normalized.</param>
+        /// <returns>The combined angle-axis rotation.</returns>
+        public static (float angle, Vector3 axis) CombineAxisAngle(float angle1, Vector3 axis1, float angle2, Vector3 axis2)
+        {
+            float angleResult;
+            Vector3 axisResult;
+
+            // Parallel vectors.
+            float dot = Vector3.Dot(axis1, axis2);
+            if (dot <= -0.9999 || dot >= 0.9999)
+            {
+                axisResult = axis2;
+                angleResult = dot > 0 ? angle1 + angle2 : angle1 - angle2;
+                return (angleResult, axisResult);
+            }
+
+            float c1 = MathF.Cos(angle1);
+            float s1 = MathF.Sin(angle1);
+            float c2 = MathF.Cos(angle2);
+            float s2 = MathF.Sin(angle2);
+            float cr = c1 * c2 - s1 * s2 * dot;
+            if (cr <= -1 || cr >= 1)
+            {
+                axisResult = axis1;
+                angleResult = 0;
+                return (angleResult, axisResult);
+            }
+
+            float ra = MathF.Acos(cr);
+            float xr = c1 * s2 * axis2.X + c2 * s1 * axis1.X + s1 * s2 * (axis1.Z * axis2.Y - axis1.Y * axis2.Z);
+            float yr = c1 * s2 * axis2.Y + c2 * s1 * axis1.Y + s1 * s2 * (axis1.X * axis2.Z - axis1.Z * axis2.X);
+            float zr = c1 * s2 * axis2.Z + c2 * s1 * axis1.Z + s1 * s2 * (axis1.Y * axis2.X - axis1.X * axis2.Y);
+            if (zr < 0) ra = -ra;
+            float norm = MathF.Sin(ra);
+            angleResult = ra;
+            axisResult.X = xr * norm;
+            axisResult.Y = yr * norm;
+            axisResult.Z = zr * norm;
+
+            return (angleResult, axisResult);
+        }
     }
 }

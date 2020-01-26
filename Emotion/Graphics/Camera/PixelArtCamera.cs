@@ -44,8 +44,25 @@ namespace Emotion.Graphics.Camera
             // This allows for pixel art to scale integerly in FullScale mode.
             Vector2 margin = (currentSize - targetSize) / 2;
             Vector3 pos = posOffset - new Vector3((int) margin.X, (int) margin.Y, 0);
-            ViewMatrixUnscaled = Matrix4x4.CreateLookAt(pos, pos + new Vector3(0, 0, -1), new Vector3(0.0f, 1.0f, 0.0f));
-            ViewMatrix = Matrix4x4.CreateScale(new Vector3(scale, scale, 1), new Vector3(iX, iY, 0)) * ViewMatrixUnscaled;
+
+            // scale, rotation, translate
+            Matrix4x4 scaleMat = Matrix4x4.CreateScale(new Vector3(scale, scale, 1), new Vector3(iX, iY, 0));
+            Matrix4x4 rotateMat;
+            // No rotation case.
+            if (_rotation.X == 0 && _rotation.Y == 0 && _rotation.Z == 0)
+            {
+                rotateMat = Matrix4x4.Identity;
+            }
+            else
+            {
+                // Mix rotation angles into one.
+                (float xyAngle, Vector3 xyAxis) = Maths.CombineAxisAngle(Rotation.X, new Vector3(1, 0, 0), Rotation.Y, new Vector3(0, 1, 0));
+                (float angle, Vector3 axis) = Maths.CombineAxisAngle(xyAngle, xyAxis, Rotation.Z, new Vector3(0, 0, 1));
+                rotateMat = Matrix4x4.CreateFromAxisAngle(axis, angle);
+            }
+
+            ViewMatrixUnscaled = rotateMat * Matrix4x4.CreateLookAt(pos, pos + new Vector3(0, 0, -1), new Vector3(0.0f, 1.0f, 0.0f));
+            ViewMatrix = scaleMat * ViewMatrixUnscaled;
         }
 
         /// <inheritdoc />

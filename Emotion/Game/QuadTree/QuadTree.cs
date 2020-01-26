@@ -3,6 +3,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Emotion.Graphics;
 using Emotion.Primitives;
 
 #endregion
@@ -100,6 +101,18 @@ namespace Emotion.Game.QuadTree
             if (!Contains(item)) return false;
             QuadTreeRoot.Move(_wrappedDictionary[item]);
             return true;
+        }
+
+        /// <summary>
+        /// Render the nodes as rectangle outlines. For debugging purposes.
+        /// </summary>
+        /// <param name="c">The render composer to use.</param>
+        public void DebugRender(RenderComposer c)
+        {
+            foreach (KeyValuePair<T, QuadTreeObject<T>> node in _wrappedDictionary)
+            {
+                c.RenderOutline(node.Value.Owner.QuadRect, Color.Red);
+            }
         }
 
         #region ICollection<T> Members
